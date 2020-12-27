@@ -2,13 +2,17 @@ import socket
 import os
 from _thread import *
 import re
+import random
 
 ServerSideSocket = socket.socket()
 host = '127.0.0.1'
 port = 2004
 ThreadCount = 0
 listOfIndexes = []
-count = 0
+#listOfClients = []
+order = []
+threads = []
+
 try:
     ServerSideSocket.bind((host, port))
 except socket.error as e:
@@ -28,20 +32,33 @@ def multi_threaded_client(connection):
                 match = 'yes'
         if re.match(regex, response) and match == 'no':
             connection.send(str.encode('OK'))
-            listOfIndexes.append(response)
             global ThreadCount
             ThreadCount = ThreadCount + 1
+            listOfIndexes.append([response,ThreadCount,connection])
             #print('Thread Number: ' + str(ThreadCount))
             break
         else:
             connection.send(str.encode('ERROR')) 
-    return ThreadCount    
-    connection.close()
 
-while count != 4:
+for x in range(0,4):
     Client, address = ServerSideSocket.accept()
-    count = start_new_thread(multi_threaded_client, (Client, ))
-    print('Thread Number: ' + str(count))
+    t = start_new_thread(multi_threaded_client, (Client, ))
+	thread.append(t)
+    #listOfClients.append(Client)
 
-print("koniec")
+for x in threads:
+	x.join()
+
+#random.shuffle(ListOfIndexes[])
+
+order = np.random.permutation([1,2,3,4])
+y = 0
+
+for x in ListOfIndexes:
+    x[1] = order[y]
+    y = y + 1
+
+for x in ListOfIndexes:
+    x[2].send(str.encode('START ' + x[1] + " " + order ))
+
 ServerSideSocket.close()
