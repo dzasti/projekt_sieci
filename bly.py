@@ -1,4 +1,5 @@
 import socket
+import time
 
 ClientMultiSocket = socket.socket()
 host = '127.0.0.1'
@@ -9,11 +10,18 @@ try:
 except socket.error as e:
     print(str(e))
 
-#res = ClientMultiSocket.recv(1024)
-while True:
+def catch_mess():
     res = ClientMultiSocket.recv(1024)
     print(res.decode('utf-8'))
-    Input = input()
-    ClientMultiSocket.send(str.encode(Input))
 
-ClientMultiSocket.close()
+def send_mess(mess):
+    mess = input()
+    ClientMultiSocket.send(str.encode(mess))
+
+while True:
+    catch_mess()
+    send_mess()
+
+
+
+#ClientMultiSocket.close()
