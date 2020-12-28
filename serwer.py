@@ -55,24 +55,43 @@ for x in range(0,4):
 for t in threads: 
     t.join() 
 
-##########################################   end  of login #########################################################
+##########################################   END OF LOGIN  ##########################################
 
+################################## functions and future variables ###################################
+avialableDomin = list(range(1,49))
+choiceList = []
+
+def manage_domin():
+    global avialableDomin
+    global choiceList
+    choiceList.clear()
+    for x in range(0,4):
+        random_num = random.choice(avialableDomin)
+        choiceList.append(random_num)
+        avialableDomin.remove(random_num)
+    choiceList = map(str, choiceList)
+    choiceList = ' '.join(choiceList)
+
+############################################ START MESSAGE ###########################################
 
 order = []
 order = np.random.permutation([1,2,3,4])
 y = 0
 
-print(order)
+order = [",".join(item) for item in order.astype(str)]
+order2 = ' '.join(order)
 
 for x in listOfIndexes:
     x[1] = order[y]
     y = y + 1
 
-print(listOfIndexes)
+manage_domin()
 
-"""
 for x in listOfIndexes:
-    x[2].send(str.encode('START ' + x[1] + " " + order ))
-"""
+    x[2].send(str.encode('START ' + x[1] + " " + order2  + " " + choiceList))
+
+
+########################################### END OF START ############################################
+
 
 ServerSideSocket.close()
