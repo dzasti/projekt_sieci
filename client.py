@@ -12,17 +12,43 @@ except socket.error as e:
 res = ClientMultiSocket.recv(1024)
 print(res.decode('utf-8'))
 
+######################################## LOGGING IN ##########################################
+
 while res != "OK":
     Input = input()
     ClientMultiSocket.send(str.encode(Input))
     res = ClientMultiSocket.recv(1024)
     res = res.decode('utf-8')
     print(res)
-############################################## end of login #######################################################
+
+######################################## START ###############################################
+
 res = ClientMultiSocket.recv(1024)
 res = res.decode('utf-8')
 print(res)
-
-print("umieram")
+res = res.replace('START ', '')
+order = [res[2], res[4], res[6] ,res[8]]
+wart = 0
+check = res[0]
+while order[wart] != check:
+    res = ClientMultiSocket.recv(1024)
+    res = res.decode('utf-8')
+    print(res)
+    wart = wart + 1
+res = ClientMultiSocket.recv(1024)
+res = res.decode('utf-8')
+print(res)
+while res != "OK":
+    Input = input()
+    ClientMultiSocket.send(str.encode(Input))
+    res = ClientMultiSocket.recv(1024)
+    res = res.decode('utf-8')
+    print(res)
+while wart != 3:
+    res = ClientMultiSocket.recv(1024)
+    res = res.decode('utf-8')
+    print(res)
+    wart = wart + 1
+####################################### ROUNDS ################################################
 
 ClientMultiSocket.close()
