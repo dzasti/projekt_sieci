@@ -49,6 +49,44 @@ while wart != 3:
     res = res.decode('utf-8')
     print(res)
     wart = wart + 1
+
 ####################################### ROUNDS ################################################
+
+res = ClientMultiSocket.recv(1024)
+res = res.decode('utf-8')
+order = list(res.split(" "))
+order = order[5:]
+res = res[:-8]
+print(res)
+print(order)
+wart = 0
+while order[wart] != check:
+    res = ClientMultiSocket.recv(1024)
+    res = res.decode('utf-8')
+    print(res)
+    wart = wart + 1
+res = ClientMultiSocket.recv(1024)
+res = res.decode('utf-8')
+print(res)
+while res != "OK":
+    Input = input()
+    ClientMultiSocket.send(str.encode(Input))
+    res = ClientMultiSocket.recv(1024)
+    res = res.decode('utf-8')
+    print(res)
+res = ClientMultiSocket.recv(1024)
+res = res.decode('utf-8')
+print(res)
+while res != "OK":
+    Input = input()
+    ClientMultiSocket.send(str.encode(Input))
+    res = ClientMultiSocket.recv(1024)
+    res = res.decode('utf-8')
+    print(res)
+while wart != 3:
+    res = ClientMultiSocket.recv(1024)
+    res = res.decode('utf-8')
+    print(res)
+    wart = wart + 1
 
 ClientMultiSocket.close()
