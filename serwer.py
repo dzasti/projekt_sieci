@@ -5,6 +5,7 @@ import re
 import random
 import threading 
 import numpy as np
+import time
 
 #################################### OPENING SERVER SOCKET #######################################
 
@@ -14,6 +15,7 @@ port = 2004
 ThreadCount = 0
 listOfIndexes = []
 threads = []
+ipPort = []
 
 try:
     ServerSideSocket.bind((host, port))
@@ -32,7 +34,7 @@ class separete_client(threading.Thread):
         self.name = name
 
     def run(self):
-        connection.send(str.encode('CONNECTED'))
+        connection.send(str.encode('CONNECTED\n'))
         while True:
             data = connection.recv(2048)
             response = data.decode('utf-8')
@@ -42,32 +44,106 @@ class separete_client(threading.Thread):
                 if response == string:
                     match = 'yes'
             if re.match(regex, response) and match == 'no':
-                connection.send(str.encode('OK'))
+                connection.send(str.encode('OK\n'))
                 global ThreadCount
                 ThreadCount = ThreadCount + 1
                 listOfIndexes.append([response,ThreadCount,connection])
                 break
             else:
-                connection.send(str.encode('ERROR')) 
+                connection.send(str.encode('ERROR\n')) 
 
 for x in range(0,4):
     (connection, (ip,port)) = ServerSideSocket.accept()
     newthread = separete_client(ip,port)
     newthread.start() 
     threads.append(newthread)
+    newthread.join()
 
-for t in threads: 
-    t.join() 
 
-################################## FUNCTIONS AND FUTURE VARIABLES ###################################
+################################## FUNCTIONS AND VARIABLES ###################################
 
-avialableDomin = list(range(1,49))
 choiceList = []
 choiceList2 = []
 order = []
+threadID = 0
+threadName = "thread1"
 order3 = [0,0,0,0]
 orientation = [0,90,180,270]
+avialableDomin = list(range(1,49))
 cordinate = list(range(-100,101))
+
+
+class send_round_mess(threading.Thread):
+
+    def __init__(self, threadID, name):
+        threading.Thread.__init__(self)
+        self.threadID = threadID
+        self.name = name
+
+    def run(self):
+        for x in listOfIndexes:
+            string = "ROUND " + choiceList + " " + order2
+            print(string, end = "")
+            x[2].send(str.encode(string + "\n"))
+            print("wysyla siem")
+        
+class round_(threading.Thread):
+
+    def __init__(self, threadID, name):
+        threading.Thread.__init__(self)
+        self.threadID = threadID
+        self.name = name
+
+    def run(self):
+
+        for x in order:
+            for x2 in listOfIndexes:
+                if x2[1] == x:
+                    x3 = x2
+            x3[2].send(str.encode("YOUR MOVE\n"))
+
+            while True:
+                data = x3[2].recv(1024)
+                response = data.decode('utf-8')
+                response = response.rstrip("\n")
+                regex = re.compile('MOVE *')
+                match = 'no'
+                print("odebralo komunikat")
+                helpList = list(response.split(" "))
+                if len(helpList) == 4 and re.match(regex, response) and (int(helpList[1]) in cordinate) and (int(helpList[2]) in cordinate) and (int(helpList[3]) in orientation):
+                    print("weszlo do petli")
+                    x3[2].send(str.encode("OK\n"))
+                    for x4 in listOfIndexes:
+                        if x4 != x3:
+                            x4[2].send(str.encode("PLAYER MOVE " + helpList[1] + " " + helpList[2] + " " + helpList[3]) + "\n")
+                    break
+                else:
+                    x3[2].send(str.encode("ERROR\n"))
+    
+            x3[2].send(str.encode("YOUR CHOICE\n"))
+            while True:
+                data = x3[2].recv(1024)
+                response = data.decode('utf-8')
+                response = response.rstrip("\n")
+                regex = re.compile('CHOOSE *')
+                match = 'no'
+                print("odebralo komunikat")
+                for string in choiceList:
+                    if response.replace('CHOOSE ', '') == string:
+                        match = 'yes'
+                        print("znalazlo element")
+                if re.match(regex, response) and match == 'yes':
+                    print("weszlo do petli")
+                    x3[2].send(str.encode("OK\n"))
+                    order3[choiceList2.index(response.replace('CHOOSE ', ''))] = x3[1]
+                    choiceList.remove(response.replace('CHOOSE ', ''))
+                    for x4 in listOfIndexes:
+                        if x4 != x3:
+                            x4[2].send(str.encode("PLAYER CHOICE " + x3[1] + " " + response.replace('CHOOSE ', '') + "\n"))
+                    break
+                else:
+                    x3[2].send(str.encode("ERROR\n"))
+
 
 
 def manage_domin():
@@ -80,7 +156,6 @@ def manage_domin():
         avialableDomin.remove(random_num)
     choiceList.sort()
     choiceList2 = choiceList
-    #choiceLst2 = map(str, choiceList2)
     choiceList = map(str, choiceList)
     choiceList = ' '.join(choiceList)
 
@@ -91,6 +166,12 @@ def ord2_to_ord1():
     order = order3
     order = [str(i) for i in order]
     order2 = ' '.join(order)
+
+def choiceList_type_change():
+    global choiceList
+    global choiceList2
+    choiceList = list(choiceList.split(" "))
+    choiceList2 = list(map(str, choiceList2))
 
 ############################################ START MESSAGE ###########################################
 
@@ -105,45 +186,37 @@ for x in listOfIndexes:
     y = y + 1
 
 manage_domin()
-print(type(choiceList[0]))
 
 for x in listOfIndexes:
-    x[2].send(str.encode('START ' + x[1] + " " + order2  + " " + choiceList))
+    x[2].send(str.encode('START ' + x[1] + " " + order2  + " " + choiceList + "\n"))
 
-choiceList = list(choiceList.split(" "))
+choiceList_type_change()
 
 for x in order:
     for x2 in listOfIndexes:
         if x2[1] == x:
             x3 = x2
-    x3[2].send(str.encode("YOUR CHOICE"))
+    x3[2].send(str.encode("YOUR CHOICE\n"))
     while True:
-        data = x3[2].recv(2048)
+        data = x3[2].recv(1024)
         response = data.decode('utf-8')
+        response = response.rstrip("\n")
         regex = re.compile('CHOOSE *')
         match = 'no'
-        print("odebralo komunikat")
         for string in choiceList:
             if response.replace('CHOOSE ', '') == string:
                 match = 'yes'
-                print("znalazlo element")
+                print("jest")
         if re.match(regex, response) and match == 'yes':
-            print("weszlo do petli")
-            x3[2].send(str.encode("OK"))
-            print(choiceList2)
-            print(type(response.replace('CHOOSE ', '')))
-            print(type(choiceList2[0]))
-            choiceList2 = list(map(str, choiceList2))
-            print(type(choiceList2[0]))
+            x3[2].send(str.encode("OK\n"))
             order3[choiceList2.index(response.replace('CHOOSE ', ''))] = x3[1]
-            print(order3)
             choiceList.remove(response.replace('CHOOSE ', ''))
             for x4 in listOfIndexes:
                 if x4 != x3:
-                    x4[2].send(str.encode("PLAYER CHOICE " + x3[1] + " " + response.replace('CHOOSE ', '')))
+                    x4[2].send(str.encode("PLAYER CHOICE " + x3[1] + " " + response.replace('CHOOSE ', '') + "\n"))
             break
         else:
-            x3[2].send(str.encode("ERROR"))
+            x3[2].send(str.encode("ERROR\n"))
 
 print(order3)
 
@@ -151,10 +224,26 @@ print(order3)
 
 ord2_to_ord1()
 manage_domin()
-for x in listOfIndexes:
-    x[2].send(str.encode("ROUND " + choiceList + " " + order2))
-choiceList = list(choiceList.split(" "))
 
+t = send_round_mess(threadID,threadName)
+t.start() 
+threads.append(t)
+t.join() 
+
+#time.sleep(3)
+
+choiceList_type_change()
+
+threadID = threadID + 1
+threadName = "thread2"
+
+t = round_(threadID,threadName)
+t.start() 
+threads.append(t)
+t.join() 
+
+
+"""
 for x in order:
     for x2 in listOfIndexes:
         if x2[1] == x:
@@ -168,7 +257,7 @@ for x in order:
         match = 'no'
         print("odebralo komunikat")
         helpList = list(response.split(" "))
-        if re.match(regex, response) and (int(helpList[1]) in cordinate) and (int(helpList[2]) in cordinate) and (int(helpList[3]) in orientation) and len(helpList) == 4:
+        if len(helpList) == 4 and re.match(regex, response) and (int(helpList[1]) in cordinate) and (int(helpList[2]) in cordinate) and (int(helpList[3]) in orientation):
             print("weszlo do petli")
             x3[2].send(str.encode("OK"))
             for x4 in listOfIndexes:
@@ -192,7 +281,6 @@ for x in order:
         if re.match(regex, response) and match == 'yes':
             print("weszlo do petli")
             x3[2].send(str.encode("OK"))
-            choiceList2 = list(map(str, choiceList2))
             order3[choiceList2.index(response.replace('CHOOSE ', ''))] = x3[1]
             choiceList.remove(response.replace('CHOOSE ', ''))
             for x4 in listOfIndexes:
@@ -201,6 +289,6 @@ for x in order:
             break
         else:
             x3[2].send(str.encode("ERROR"))
-
+"""
 
 ServerSideSocket.close()
