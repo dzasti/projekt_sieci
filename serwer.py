@@ -62,6 +62,8 @@ for x in range(0,4):
 
 ################################## FUNCTIONS AND VARIABLES ###################################
 
+HEADER = 64
+FORMAT = 'utf-8'
 choiceList = []
 choiceList2 = []
 order = []
@@ -73,6 +75,14 @@ avialableDomin = list(range(1,49))
 cordinate = list(range(-100,101))
 
 
+def send_mess(mess,connection):
+    message = mess.encode(FORMAT)
+    mess_length = len(mess)
+    send_length = str(mess_length).encode(FORMAT)
+    send_length += b' ' * (HEADER - len(send_length))
+    connection.send(send_length)
+    connection.send(message)
+
 class send_round_mess(threading.Thread):
 
     def __init__(self, threadID, name):
@@ -82,11 +92,11 @@ class send_round_mess(threading.Thread):
 
     def run(self):
         for x in listOfIndexes:
-            string = "ROUND " + choiceList + " " + order2
+            string = "ROUND " + choiceList
             print(string, end = "")
-            x[2].send(str.encode(string + "\n"))
-            print("wysyla siem")
-        
+            send_mess((string + "\n"),x[2])
+            print("wysyla sie")
+
 class round_(threading.Thread):
 
     def __init__(self, threadID, name):
@@ -115,7 +125,7 @@ class round_(threading.Thread):
                     x3[2].send(str.encode("OK\n"))
                     for x4 in listOfIndexes:
                         if x4 != x3:
-                            x4[2].send(str.encode("PLAYER MOVE " + helpList[1] + " " + helpList[2] + " " + helpList[3]) + "\n")
+                            x4[2].send(str.encode("PLAYER MOVE " + helpList[1] + " " + helpList[2] + " " + helpList[3] + "\n"))
                     break
                 else:
                     x3[2].send(str.encode("ERROR\n"))
@@ -222,73 +232,27 @@ print(order3)
 
 ########################################### ROUNDS ####################################################
 
-ord2_to_ord1()
-manage_domin()
+fuj = 0
+while fuj != 3:
 
-t = send_round_mess(threadID,threadName)
-t.start() 
-threads.append(t)
-t.join() 
+    ord2_to_ord1()
+    manage_domin()
 
-#time.sleep(3)
+    t = send_round_mess(threadID,threadName)
+    t.start() 
+    threads.append(t)
+    t.join() 
 
-choiceList_type_change()
+    choiceList_type_change()
 
-threadID = threadID + 1
-threadName = "thread2"
+    threadID = threadID + 1
+    threadName = "thread" + str(fuj)
+    t = round_(threadID,threadName)
+    t.start() 
+    threads.append(t)
+    t.join() 
 
-t = round_(threadID,threadName)
-t.start() 
-threads.append(t)
-t.join() 
+    fuj = fuj + 1
 
-
-"""
-for x in order:
-    for x2 in listOfIndexes:
-        if x2[1] == x:
-            x3 = x2
-    x3[2].send(str.encode("YOUR MOVE"))
-
-    while True:
-        data = x3[2].recv(2048)
-        response = data.decode('utf-8')
-        regex = re.compile('MOVE *')
-        match = 'no'
-        print("odebralo komunikat")
-        helpList = list(response.split(" "))
-        if len(helpList) == 4 and re.match(regex, response) and (int(helpList[1]) in cordinate) and (int(helpList[2]) in cordinate) and (int(helpList[3]) in orientation):
-            print("weszlo do petli")
-            x3[2].send(str.encode("OK"))
-            for x4 in listOfIndexes:
-                if x4 != x3:
-                    x4[2].send(str.encode("PLAYER MOVE " + helpList[1] + " " + helpList[2] + " " + helpList[3] + " "))
-            break
-        else:
-            x3[2].send(str.encode("ERROR"))
-    
-    x3[2].send(str.encode("YOUR CHOICE"))
-    while True:
-        data = x3[2].recv(2048)
-        response = data.decode('utf-8')
-        regex = re.compile('CHOOSE *')
-        match = 'no'
-        print("odebralo komunikat")
-        for string in choiceList:
-            if response.replace('CHOOSE ', '') == string:
-                match = 'yes'
-                print("znalazlo element")
-        if re.match(regex, response) and match == 'yes':
-            print("weszlo do petli")
-            x3[2].send(str.encode("OK"))
-            order3[choiceList2.index(response.replace('CHOOSE ', ''))] = x3[1]
-            choiceList.remove(response.replace('CHOOSE ', ''))
-            for x4 in listOfIndexes:
-                if x4 != x3:
-                    x4[2].send(str.encode("PLAYER CHOICE " + x3[1] + " " + response.replace('CHOOSE ', '')))
-            break
-        else:
-            x3[2].send(str.encode("ERROR"))
-"""
 
 ServerSideSocket.close()
