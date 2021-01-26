@@ -33,8 +33,9 @@ res = res.rstrip("\n")
 res = list(res.split(" "))
 res = res[5:]
 domins = res
-print(domins)
 wart = 0
+print(domins) 
+print(order[wart], check)
 while order[wart] != check:
     res = ClientMultiSocket.recv(1024)
     res = res.decode('utf-8')

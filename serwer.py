@@ -1,21 +1,25 @@
 import socket
 import os
-from _thread import *
 import re
 import random
 import threading 
 import numpy as np
 import time
-
+import separate_client
+import info_client
+import choiceList
+import order_
+import start_message
+import round_
+import send_round_mess
 #################################### OPENING SERVER SOCKET #######################################
 
 ServerSideSocket = socket.socket()
 host = '127.0.0.1'
 port = 2004
-ThreadCount = 0
-listOfIndexes = []
+ThreadCount = [1,2,3,4]
 threads = []
-ipPort = []
+blank_list = []
 
 try:
     ServerSideSocket.bind((host, port))
@@ -24,234 +28,143 @@ except socket.error as e:
 
 ServerSideSocket.listen(4)
 
-###################################### CONNECT AND LOG IN ########################################
+###################################### CONNECT AND LOG IN ####################################
 
-class separete_client(threading.Thread):
-
-    def __init__(self, threadID, name):
-        threading.Thread.__init__(self)
-        self.threadID = threadID
-        self.name = name
-
-    def run(self):
-        connection.send(str.encode('CONNECTED\n'))
-        while True:
-            data = connection.recv(2048)
-            response = data.decode('utf-8')
-            regex = re.compile('LOGIN ......')
-            match = 'no'
-            for string in listOfIndexes:
-                if response == string:
-                    match = 'yes'
-            if re.match(regex, response) and match == 'no':
-                connection.send(str.encode('OK\n'))
-                global ThreadCount
-                ThreadCount = ThreadCount + 1
-                listOfIndexes.append([response,ThreadCount,connection])
-                break
-            else:
-                connection.send(str.encode('ERROR\n')) 
+all_client_info = info_client.info_client(blank_list)
 
 for x in range(0,4):
     (connection, (ip,port)) = ServerSideSocket.accept()
-    newthread = separete_client(ip,port)
+    newthread = separate_client.separete_client(ip,port,connection,all_client_info)
     newthread.start() 
     threads.append(newthread)
     newthread.join()
 
-
 ################################## FUNCTIONS AND VARIABLES ###################################
+
+
+choice_list = choiceList.choiceList()
+choice_list2 = choiceList.choiceList()
 
 HEADER = 64
 FORMAT = 'utf-8'
-choiceList = []
-choiceList2 = []
-order = []
 threadID = 0
 threadName = "thread1"
 order3 = [0,0,0,0]
 orientation = [0,90,180,270]
 avialableDomin = list(range(1,49))
 cordinate = list(range(-100,101))
+VALUE = 200
+client_board = [[0 for i in range(VALUE)] for j in range(VALUE)]
 
 
-def send_mess(mess,connection):
-    message = mess.encode(FORMAT)
-    mess_length = len(mess)
-    send_length = str(mess_length).encode(FORMAT)
-    send_length += b' ' * (HEADER - len(send_length))
-    connection.send(send_length)
-    connection.send(message)
-
-class send_round_mess(threading.Thread):
-
-    def __init__(self, threadID, name):
-        threading.Thread.__init__(self)
-        self.threadID = threadID
-        self.name = name
-
-    def run(self):
-        for x in listOfIndexes:
-            string = "ROUND " + choiceList
-            print(string, end = "")
-            send_mess((string + "\n"),x[2])
-            print("wysyla sie")
-
-class round_(threading.Thread):
-
-    def __init__(self, threadID, name):
-        threading.Thread.__init__(self)
-        self.threadID = threadID
-        self.name = name
-
-    def run(self):
-
-        for x in order:
-            for x2 in listOfIndexes:
-                if x2[1] == x:
-                    x3 = x2
-            x3[2].send(str.encode("YOUR MOVE\n"))
-
-            while True:
-                data = x3[2].recv(1024)
-                response = data.decode('utf-8')
-                response = response.rstrip("\n")
-                regex = re.compile('MOVE *')
-                match = 'no'
-                print("odebralo komunikat")
-                helpList = list(response.split(" "))
-                if len(helpList) == 4 and re.match(regex, response) and (int(helpList[1]) in cordinate) and (int(helpList[2]) in cordinate) and (int(helpList[3]) in orientation):
-                    print("weszlo do petli")
-                    x3[2].send(str.encode("OK\n"))
-                    for x4 in listOfIndexes:
-                        if x4 != x3:
-                            x4[2].send(str.encode("PLAYER MOVE " + helpList[1] + " " + helpList[2] + " " + helpList[3] + "\n"))
-                    break
-                else:
-                    x3[2].send(str.encode("ERROR\n"))
-    
-            x3[2].send(str.encode("YOUR CHOICE\n"))
-            while True:
-                data = x3[2].recv(1024)
-                response = data.decode('utf-8')
-                response = response.rstrip("\n")
-                regex = re.compile('CHOOSE *')
-                match = 'no'
-                print("odebralo komunikat")
-                for string in choiceList:
-                    if response.replace('CHOOSE ', '') == string:
-                        match = 'yes'
-                        print("znalazlo element")
-                if re.match(regex, response) and match == 'yes':
-                    print("weszlo do petli")
-                    x3[2].send(str.encode("OK\n"))
-                    order3[choiceList2.index(response.replace('CHOOSE ', ''))] = x3[1]
-                    choiceList.remove(response.replace('CHOOSE ', ''))
-                    for x4 in listOfIndexes:
-                        if x4 != x3:
-                            x4[2].send(str.encode("PLAYER CHOICE " + x3[1] + " " + response.replace('CHOOSE ', '') + "\n"))
-                    break
-                else:
-                    x3[2].send(str.encode("ERROR\n"))
-
-
+"""
+def manage_move_mess(mess):
+    mess = list(mess.split(" "))
+    element = int(mess[0]) - 1 
+    line = int(mess[1]) - 1
+    column = int(mess[2]) - 1
+    line2 = line
+    column2 = column
+    if int(mess[3]) == 0:
+        column2 = column + 1
+    if int(mess[3]) == 90:
+        line2 = line + 1
+    if int(mess[3]) == 180:
+        column2 = column - 1
+    if int(mess[3]) == 270:
+        line2 = line - 1
+"""
 
 def manage_domin():
     global avialableDomin
-    global choiceList
-    global choiceList2
+    global choice_list
+    global choice_list2
     for x in range(0,4):
         random_num = random.choice(avialableDomin)
-        choiceList.append(random_num)
+        choice_list.change_list(random_num)
         avialableDomin.remove(random_num)
-    choiceList.sort()
-    choiceList2 = choiceList
-    choiceList = map(str, choiceList)
-    choiceList = ' '.join(choiceList)
+    choice_list.sort_()
+    iterable = choice_list.get_list()
+    choice_list2.ch_list = []
+    for i in iterable:
+        choice_list2.change_list(i)
+    choice_list.change_to_string()
+
 
 def ord2_to_ord1():
     global order
     global order3
-    global order2
+    var7 = order3.get()
+    order = order_.order_(var7)
+    order.change_to_string2()
+    
+
+def ord2_to_ord():
+    global order
+    global order3
     order = order3
-    order = [str(i) for i in order]
-    order2 = ' '.join(order)
+    
+
 
 def choiceList_type_change():
-    global choiceList
-    global choiceList2
-    choiceList = list(choiceList.split(" "))
-    choiceList2 = list(map(str, choiceList2))
+    global choice_list
+    global choice_list2
+    choice_list.change_to_list()
+    choice_list2.change_to_strlist()
 
 ############################################ START MESSAGE ###########################################
 
-order = np.random.permutation([1,2,3,4])
-y = 0
+temporary_order = np.random.permutation([1,2,3,4])
+blank_list2 = [0,0,0,0]
 
-order = [",".join(item) for item in order.astype(str)]
-order2 = ' '.join(order)
 
-for x in listOfIndexes:
-    x[1] = order[y]
-    y = y + 1
+temporary_order = [" ".join(item) for item in temporary_order.astype(str)]
 
+order = order_.order_(temporary_order)
+order.change_to_string()
+order3 = order_.order_(blank_list2)
 manage_domin()
 
-for x in listOfIndexes:
-    x[2].send(str.encode('START ' + x[1] + " " + order2  + " " + choiceList + "\n"))
+start_mess = all_client_info.get_list()
+
+for x in start_mess:
+    x[2].send(str.encode('START ' + str(x[1]) + " " + str(order.get()) + " " + str(choice_list.get_list()) + "\n"))
 
 choiceList_type_change()
 
-for x in order:
-    for x2 in listOfIndexes:
-        if x2[1] == x:
-            x3 = x2
-    x3[2].send(str.encode("YOUR CHOICE\n"))
-    while True:
-        data = x3[2].recv(1024)
-        response = data.decode('utf-8')
-        response = response.rstrip("\n")
-        regex = re.compile('CHOOSE *')
-        match = 'no'
-        for string in choiceList:
-            if response.replace('CHOOSE ', '') == string:
-                match = 'yes'
-                print("jest")
-        if re.match(regex, response) and match == 'yes':
-            x3[2].send(str.encode("OK\n"))
-            order3[choiceList2.index(response.replace('CHOOSE ', ''))] = x3[1]
-            choiceList.remove(response.replace('CHOOSE ', ''))
-            for x4 in listOfIndexes:
-                if x4 != x3:
-                    x4[2].send(str.encode("PLAYER CHOICE " + x3[1] + " " + response.replace('CHOOSE ', '') + "\n"))
-            break
-        else:
-            x3[2].send(str.encode("ERROR\n"))
-
-print(order3)
+newthread = start_message.start_message(order.get(), order3.get(), all_client_info.get_list(),choice_list.get_list(),choice_list2.get_list())
+newthread.execute()
 
 ########################################### ROUNDS ####################################################
 
+print("siema")
+print(order.get())
+print(order3.get())
 fuj = 0
+ord2_to_ord1()
+order3 = order_.order_([0,0,0,0])
+#order.orrd = list(order.orrd.split(" "))
 while fuj != 3:
 
-    ord2_to_ord1()
+    print("siema2")
+    print(order.get())
+    print(order3.get())
+
     manage_domin()
 
-    t = send_round_mess(threadID,threadName)
+    t = send_round_mess.send_round_mess(threadID,threadName,all_client_info.get_list(),choice_list.get_list())
     t.start() 
     threads.append(t)
     t.join() 
 
     choiceList_type_change()
 
-    threadID = threadID + 1
-    threadName = "thread" + str(fuj)
-    t = round_(threadID,threadName)
-    t.start() 
-    threads.append(t)
-    t.join() 
-
+    t = round_.round_(order.get(), order3.get(), all_client_info.get_list(), choice_list.get_list(), choice_list2.get_list())
+    t.execute_()
+    varrr = order3.get()
+    order = order_.order_(varrr)
+    order.change_to_string2()
+    order3 = order_.order_([0,0,0,0])
     fuj = fuj + 1
 
 
