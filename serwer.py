@@ -12,6 +12,7 @@ import order_
 import start_message
 import round_
 import send_round_mess
+import boards
 #################################### OPENING SERVER SOCKET #######################################
 
 ServerSideSocket = socket.socket()
@@ -90,7 +91,6 @@ def manage_domin():
         choice_list2.change_list(i)
     choice_list.change_to_string()
 
-
 def ord2_to_ord1():
     global order
     global order3
@@ -98,13 +98,10 @@ def ord2_to_ord1():
     order = order_.order_(var7)
     order.change_to_string2()
     
-
 def ord2_to_ord():
     global order
     global order3
     order = order3
-    
-
 
 def choiceList_type_change():
     global choice_list
@@ -134,6 +131,7 @@ choiceList_type_change()
 
 newthread = start_message.start_message(order.get(), order3.get(), all_client_info.get_list(),choice_list.get_list(),choice_list2.get_list())
 newthread.execute()
+print(all_client_info.get_list())
 
 ########################################### ROUNDS ####################################################
 
@@ -144,6 +142,8 @@ fuj = 0
 ord2_to_ord1()
 order3 = order_.order_([0,0,0,0])
 #order.orrd = list(order.orrd.split(" "))
+board = boards.boards()
+board.manage_boards()
 while fuj != 3:
 
     print("siema2")
@@ -159,13 +159,14 @@ while fuj != 3:
 
     choiceList_type_change()
 
-    t = round_.round_(order.get(), order3.get(), all_client_info.get_list(), choice_list.get_list(), choice_list2.get_list())
+    t = round_.round_(order.get(), order3.get(), all_client_info.get_list(), choice_list.get_list(), choice_list2.get_list(),board)
     t.execute_()
     varrr = order3.get()
     order = order_.order_(varrr)
     order.change_to_string2()
     order3 = order_.order_([0,0,0,0])
     fuj = fuj + 1
+    print(all_client_info.get_list())  
 
 
 ServerSideSocket.close()

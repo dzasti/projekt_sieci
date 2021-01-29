@@ -29,8 +29,16 @@ class separete_client(threading.Thread):
             regex = re.compile('LOGIN ......')
             match = 'no'
             info = self.all_client_info.get_list()
+            resss = self.response
+            print(info)
+            print("kl")
             for string in info:
-                if self.response == string:
+                print("KK")
+                print(string[0])
+                print("")
+                print(type(string[0]), type(resss))
+                print("")
+                if str(resss) == str(string[0]):
                     match = 'yes'
             if re.match(regex, self.response) and match == 'no':
                 self.connection.send(str.encode('OK\n'))

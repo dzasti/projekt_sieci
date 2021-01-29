@@ -36,10 +36,14 @@ class start_message:
                     self.order3[OP] = x3[1]
                     self.choice_list.remove(response.replace('CHOOSE ', ''))
                     var = str(x3[1])
+                    index = self.all_client_info.index(x3)
+                    self.all_client_info[index][3] = response.replace('CHOOSE ', '')
                     for x4 in self.all_client_info:
                         if str(x4[1]) != str(x3[1]):
                             x4[2].send(str.encode("PLAYER CHOICE " + var + " " + response.replace('CHOOSE ', '') + "\n"))
+
                     break
                 else:
                     x3[2].send(str.encode("ERROR\n"))
+        print(self.all_client_info)           
     
