@@ -2,6 +2,7 @@ import threading
 import re
 import info_client
 import random
+import s_r_mess
 
 ThreadCount = [1,2,3,4]
 
@@ -22,10 +23,9 @@ class separete_client(threading.Thread):
         self.all_client_info = all_client_info
 
     def run(self):
-        self.connection.send(str.encode('CONNECTED\n'))
+        s_r_mess.send_m("CONNECTED\n",self.connection)
         while True:
-            data = self.connection.recv(2048)
-            self.response = data.decode('utf-8')
+            self.response = s_r_mess.recv_mess(self.connection)
             regex = re.compile('LOGIN ......')
             match = 'no'
             info = self.all_client_info.get_list()
@@ -41,11 +41,11 @@ class separete_client(threading.Thread):
                 if str(resss) == str(string[0]):
                     match = 'yes'
             if re.match(regex, self.response) and match == 'no':
-                self.connection.send(str.encode('OK\n'))
+                s_r_mess.send_m("OK\n", self.connection)
                 modify_conn_info(self.response.rstrip("\n"), self.connection, self.all_client_info)
                 break
             else:
-                self.connection.send(str.encode('ERROR\n')) 
+                s_r_mess.send_m("ERROR\n", self.connection) 
 
     def get_response(self):
         return self.response

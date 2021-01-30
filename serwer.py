@@ -13,6 +13,7 @@ import start_message
 import round_
 import send_round_mess
 import boards
+import s_r_mess
 #################################### OPENING SERVER SOCKET #######################################
 
 ServerSideSocket = socket.socket()
@@ -28,6 +29,7 @@ except socket.error as e:
     print(str(e))
 
 ServerSideSocket.listen(4)
+s_r_mess.create_file()
 
 ###################################### CONNECT AND LOG IN ####################################
 
@@ -56,25 +58,6 @@ avialableDomin = list(range(1,49))
 cordinate = list(range(-100,101))
 VALUE = 200
 client_board = [[0 for i in range(VALUE)] for j in range(VALUE)]
-
-
-"""
-def manage_move_mess(mess):
-    mess = list(mess.split(" "))
-    element = int(mess[0]) - 1 
-    line = int(mess[1]) - 1
-    column = int(mess[2]) - 1
-    line2 = line
-    column2 = column
-    if int(mess[3]) == 0:
-        column2 = column + 1
-    if int(mess[3]) == 90:
-        line2 = line + 1
-    if int(mess[3]) == 180:
-        column2 = column - 1
-    if int(mess[3]) == 270:
-        line2 = line - 1
-"""
 
 def manage_domin():
     global avialableDomin
@@ -125,7 +108,7 @@ manage_domin()
 start_mess = all_client_info.get_list()
 
 for x in start_mess:
-    x[2].send(str.encode('START ' + str(x[1]) + " " + str(order.get()) + " " + str(choice_list.get_list()) + "\n"))
+    s_r_mess.send_m('START ' + str(x[1]) + " " + str(order.get()) + " " + str(choice_list.get_list()) + "\n", x[2])
 
 choiceList_type_change()
 
@@ -144,7 +127,7 @@ order3 = order_.order_([0,0,0,0])
 #order.orrd = list(order.orrd.split(" "))
 board = boards.boards()
 board.manage_boards()
-while fuj != 3:
+while fuj != 11:
 
     print("siema2")
     print(order.get())

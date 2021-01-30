@@ -1,5 +1,6 @@
 import re
 import boards
+import s_r_mess
 
 cordinate = list(range(-100,101))
 orientation = [0,90,180,270]
@@ -124,10 +125,9 @@ class round_:
             for x2 in self.all_client_info:
                 if str(x2[1]) == x:
                     x3 = x2
-            x3[2].send(str.encode("YOUR MOVE\n"))
+            s_r_mess.send_m("YOUR MOVE\n", x3[2])
             while True:
-                data = x3[2].recv(1024)
-                response = data.decode('utf-8')
+                response = s_r_mess.recv_mess(x3[2])
                 response = response.rstrip("\n")
                 regex = re.compile('MOVE *')
                 match = 'no'
@@ -158,21 +158,21 @@ class round_:
                         #checking(curr_board)
                 if(m1 == 1 and m2):
                     print("weszlo do petli")
-                    x3[2].send(str.encode("OK\n"))
+                    s_r_mess.send_m("OK\n", x3[2])
                     el_from_characters = self.board.get_el_by_index(x3[3])
                     print(el_from_characters)
                     insert_to_board(curr_board,el_from_characters,modified_mess[0],modified_mess[1],modified_mess[2],modified_mess[3])
                     for x4 in self.all_client_info:
                         if x4 != x3:
-                            x4[2].send(str.encode("PLAYER MOVE " + helpList[1] + " " + helpList[2] + " " + helpList[3] + "\n"))
+                            s_r_mess.send_m("PLAYER MOVE " + helpList[1] + " " + helpList[2] + " " + helpList[3] + "\n", x4[2])
                     break
                 else:
-                    x3[2].send(str.encode("ERROR\n"))
+                    s_r_mess.send_m("ERROR\n", x3[2])
+                
     
-            x3[2].send(str.encode("YOUR CHOICE\n"))
+            s_r_mess.send_m("YOUR CHOICE\n", x3[2])
             while True:
-                data = x3[2].recv(1024)
-                response = data.decode('utf-8')
+                response = s_r_mess.recv_mess(x3[2])
                 response = response.rstrip("\n")
                 regex = re.compile('CHOOSE *')
                 match = 'no'
@@ -183,7 +183,7 @@ class round_:
                         print("znalazlo element")
                 if re.match(regex, response) and match == 'yes':
                     print("weszlo do petli")
-                    x3[2].send(str.encode("OK\n"))
+                    s_r_mess.send_m("OK\n",x3[2])
                     OP = self.choice_list2.index(response.replace('CHOOSE ', ''))
                     self.order3[OP] = x3[1]
                     self.choice_list.remove(response.replace('CHOOSE ', ''))
@@ -191,10 +191,10 @@ class round_:
                     self.all_client_info[index][3] = response.replace('CHOOSE ', '')
                     for x4 in self.all_client_info:
                         if x4 != x3:
-                            x4[2].send(str.encode("PLAYER CHOICE " + str(x3[1]) + " " + response.replace('CHOOSE ', '') + "\n"))
+                            s_r_mess.send_m("PLAYER CHOICE " + str(x3[1]) + " " + response.replace('CHOOSE ', '') + "\n", x4[2])
                     break
                 else:
-                    x3[2].send(str.encode("ERROR\n"))
+                    s_r_mess.send_m("ERROR\n", x3[2])
         print(self.all_client_info)
         self.ble = self.ble + 1
             

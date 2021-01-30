@@ -3,6 +3,7 @@ import re
 import info_client
 import choiceList
 import order_
+import s_r_mess
 
 class start_message:
 
@@ -20,10 +21,9 @@ class start_message:
             for x2 in self.all_client_info:
                 if str(x2[1]) == x:
                     x3 = x2
-            x3[2].send(str.encode("YOUR CHOICE\n"))
+            s_r_mess.send_m("YOUR CHOICE\n",x3[2])
             while True:
-                data = x3[2].recv(1024)
-                response = data.decode('utf-8')
+                response = s_r_mess.recv_mess(x3[2])
                 response = response.rstrip("\n")
                 regex = re.compile('CHOOSE *')
                 match = 'no'
@@ -31,7 +31,7 @@ class start_message:
                     if response.replace('CHOOSE ', '') == string:
                         match = 'yes'
                 if re.match(regex, response) and match == 'yes':
-                    x3[2].send(str.encode("OK\n"))
+                    s_r_mess.send_m("OK\n",x3[2])
                     OP = self.choice_list2.index(response.replace('CHOOSE ', ''))
                     self.order3[OP] = x3[1]
                     self.choice_list.remove(response.replace('CHOOSE ', ''))
@@ -40,10 +40,10 @@ class start_message:
                     self.all_client_info[index][3] = response.replace('CHOOSE ', '')
                     for x4 in self.all_client_info:
                         if str(x4[1]) != str(x3[1]):
-                            x4[2].send(str.encode("PLAYER CHOICE " + var + " " + response.replace('CHOOSE ', '') + "\n"))
+                            s_r_mess.send_m("PLAYER CHOICE " + var + " " + response.replace('CHOOSE ', '') + "\n",x4[2])
 
                     break
                 else:
-                    x3[2].send(str.encode("ERROR\n"))
+                    s_r_mess.send_m("ERROR\n",x3[2])
         print(self.all_client_info)           
     
