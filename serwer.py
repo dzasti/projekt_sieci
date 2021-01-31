@@ -13,7 +13,7 @@ import start_message
 import round_
 import send_round_mess
 import boards
-import s_r_mess
+
 #################################### OPENING SERVER SOCKET #######################################
 
 ServerSideSocket = socket.socket()
@@ -29,7 +29,8 @@ except socket.error as e:
     print(str(e))
 
 ServerSideSocket.listen(4)
-s_r_mess.create_file()
+
+
 
 ###################################### CONNECT AND LOG IN ####################################
 
@@ -108,7 +109,7 @@ manage_domin()
 start_mess = all_client_info.get_list()
 
 for x in start_mess:
-    s_r_mess.send_m('START ' + str(x[1]) + " " + str(order.get()) + " " + str(choice_list.get_list()) + "\n", x[2])
+    x[2].send(str.encode('START ' + str(x[1]) + " " + str(order.get()) + " " + str(choice_list.get_list()) + "\n"))
 
 choiceList_type_change()
 
